@@ -73,7 +73,7 @@
 #define XEMBED_EMBEDDED_VERSION (VERSION_MAJOR << 16) | VERSION_MINOR
 
 /* enums */
-enum { CurNormal, CurResize, CurMove, CurLast };        /* cursor */
+enum { CurNormal, CurResizeBottomLeft, CurResizeBottomRight, CurResizeTopLeft, CurResizeTopRight, CurMove, CurLast };        /* cursor */
 enum { ColBorder, ColFG, ColBG, ColLast };              /* color */
 enum { NetSupported, NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation,
 	   NetWMName, NetWMState, NetWMFullscreen, NetActiveWindow, NetWMWindowType,
@@ -529,7 +529,10 @@ cleanup(void) {
 	XFreePixmap(dpy, dc.drawable);
 	XFreeGC(dpy, dc.gc);
 	XFreeCursor(dpy, cursor[CurNormal]);
-	XFreeCursor(dpy, cursor[CurResize]);
+	XFreeCursor(dpy, cursor[CurResizeBottomLeft]);
+	XFreeCursor(dpy, cursor[CurResizeBottomRight]);
+	XFreeCursor(dpy, cursor[CurResizeTopLeft]);
+	XFreeCursor(dpy, cursor[CurResizeTopRight]);
 	XFreeCursor(dpy, cursor[CurMove]);
 	while(mons)
 		cleanupmon(mons);
@@ -1521,8 +1524,9 @@ resizemouse(const Arg *arg) {
 	ocx = c->x;
 	ocy = c->y;
 	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-	                None, cursor[CurResize], CurrentTime) != GrabSuccess)
+	                None, cursor[CurResizeBottomRight], CurrentTime) != GrabSuccess)
 		return;
+
 	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
 	do {
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
@@ -1783,7 +1787,10 @@ setup(void) {
 	xatom[XembedInfo] = XInternAtom(dpy, "_XEMBED_INFO", False);
 	/* init cursors */
 	cursor[CurNormal] = XCreateFontCursor(dpy, XC_left_ptr);
-	cursor[CurResize] = XCreateFontCursor(dpy, XC_sizing);
+	cursor[CurResizeBottomLeft] = XCreateFontCursor(dpy, XC_bottom_left_corner);
+	cursor[CurResizeBottomRight] = XCreateFontCursor(dpy, XC_bottom_right_corner);
+	cursor[CurResizeTopLeft] = XCreateFontCursor(dpy, XC_top_left_corner);
+	cursor[CurResizeTopRight] = XCreateFontCursor(dpy, XC_top_right_corner);
 	cursor[CurMove] = XCreateFontCursor(dpy, XC_fleur);
 	/* init appearance */
 	dc.norm[ColBorder] = getcolor(normbordercolor);
