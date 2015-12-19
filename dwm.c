@@ -1046,6 +1046,7 @@ focusstack(const Arg *arg) {
 	if(c) {
 		focus(c);
 		restack(selmon);
+		XRaiseWindow(dpy, c->win);
 	}
 }
 

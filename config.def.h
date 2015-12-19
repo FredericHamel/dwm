@@ -34,7 +34,7 @@ static const Bool resizehints = True; /* True means respect size hints in tiled 
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
+	{ "<||",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
 };
@@ -59,18 +59,20 @@ static const char *dmenucmd[] = { "dmenu_run", "-l", dmenu_lines, "-p", prompt, 
 static const char *termcmd[]  = { "urxvt", NULL };
 static const char *explorer[] = { "dbus-launch", "pcmanfm", NULL };
 static const char *lock[]    = { "slock", NULL };
+static const char *scrot[]   = {"/bin/sh", "-c", "scrot ~/screenshots/%Y-%m-%d-%T-screenshot.png", NULL};
 static Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,												XK_e,			 spawn,					 {.v = explorer } },
-	{ MODKEY, 											XK_o,			 spawn,					 {.v = lock } },	
+	{ MODKEY, 											XK_o,			 spawn,					 {.v = lock }	},
+	{ MODKEY,												XK_F12,		 spawn, 				 {.v = scrot} },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_Return, zoom,           {0} },
+	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
