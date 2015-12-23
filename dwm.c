@@ -78,7 +78,7 @@
 #define XEMBED_EMBEDDED_VERSION (VERSION_MAJOR << 16) | VERSION_MINOR
 
 /* enums */
-enum { CurNormal, CurResizeBottomLeft, CurResizeBottomRight, CurResizeTopLeft, CurResizeTopRight, CurMove, CurLast };        /* cursor */
+enum { CurNormal, CurResizeBottomRight, CurResizeBottomLeft, CurResizeTopRight, CurResizeTopLeft, CurMove, CurLast };        /* cursor */
 enum { ColBorder, ColFG, ColBG, ColLast };              /* color */
 enum { NetSupported, NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation,
 	   NetWMName, NetWMState, NetWMFullscreen, NetActiveWindow, NetWMWindowType,
@@ -438,6 +438,7 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact) {
 			*w -= *w % c->incw;
 		if(c->inch)
 			*h -= *h % c->inch;
+		
 		/* restore base dimensions */
 		*w = MAX(*w + c->basew, c->minw);
 		*h = MAX(*h + c->baseh, c->minh);
@@ -1557,22 +1558,34 @@ resizeclient(Client *c, int x, int y, int w, int h) {
 
 void
 resizemouse(const Arg *arg) {
-	int ocx, ocy;
-	int nw, nh;
+	int ocx, ocy, ocw, och, xc, yc;
+	int nx, ny, nw, nh;
 	Client *c;
 	Monitor *m;
 	XEvent ev;
+	Cursor cur;
 
 	if(!(c = selmon->sel))
 		return;
 	restack(selmon);
 	ocx = c->x;
 	ocy = c->y;
-	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-	                None, cursor[CurResizeBottomRight], CurrentTime) != GrabSuccess)
+	ocw = c->w + (c->bw << 1);
+	och = c->h + (c->bw << 1);
+	
+	if(getrootptr(&xc, &yc) == False)
 		return;
 
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
+	xc = ((xc - ocx) << 1) < c->w + c->bw - 1;
+	yc = ((yc - ocy) << 1) < c->h + c->bw - 1;
+	cur = cursor[CurResizeBottomRight + xc + (yc << 1)];
+	
+	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
+	                None, cur, CurrentTime) != GrabSuccess)
+		return;
+
+	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, xc ? -1 : ocw, yc ? -1 : c->h);
+	
 	do {
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
 		switch(ev.type) {
@@ -1582,21 +1595,25 @@ resizemouse(const Arg *arg) {
 			handler[ev.type](&ev);
 			break;
 		case MotionNotify:
-			nw = MAX(ev.xmotion.x - ocx - 2 * c->bw + 1, 1);
-			nh = MAX(ev.xmotion.y - ocy - 2 * c->bw + 1, 1);
+			nx = xc ? ev.xmotion.x: ocx;
+			ny = yc ? ev.xmotion.y: ocy;
+			nw = MAX(xc ? (ocx + ocw) - nx: ev.xmotion.x - ocx, 1) - (c->bw << 1);
+			nh = MAX(yc ? (ocy + och) - ny: ev.xmotion.y - ocy, 1) - (c->bw << 1);
 			if(c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
-			&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
+				&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
 			{
 				if(!c->isfloating && selmon->lt[selmon->sellt]->arrange
-				&& (abs(nw - c->w) > snap || abs(nh - c->h) > snap))
+				&& (abs(nw - ocw) > snap || abs(nh - och) > snap))
 					togglefloating(NULL);
 			}
-			if(!selmon->lt[selmon->sellt]->arrange || c->isfloating)
-				resize(c, c->x, c->y, nw, nh, True);
+			if((!selmon->lt[selmon->sellt]->arrange || c->isfloating)
+					&& ((!c->incw || nw % c->incw == 0) || (!c->inch || nh % c->inch == 0))) {
+				resize(c, nx, ny, nw, nh, True);
+			}
 			break;
 		}
 	} while(ev.type != ButtonRelease);
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
+	
 	XUngrabPointer(dpy, CurrentTime);
 	while(XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	if((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
