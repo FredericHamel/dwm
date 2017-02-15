@@ -198,6 +198,7 @@ static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachstack(Client *c);
 static void buttonpress(XEvent *e);
+static void changemon(Monitor *m);
 static void checkotherwm(void);
 static void cleanup(void);
 static void cleanupmon(Monitor *mon);
@@ -245,6 +246,7 @@ static void pop(Client *);
 static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
+static void restart(const Arg *arg);
 static void removesystrayicon(Client *i);
 static void resize(Client *c, int x, int y, int w, int h, Bool interact);
 static void resizebarwin(Monitor *m);
@@ -438,7 +440,7 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact) {
 			*w -= *w % c->incw;
 		if(c->inch)
 			*h -= *h % c->inch;
-		
+
 		/* restore base dimensions */
 		*w = MAX(*w + c->basew, c->minw);
 		*h = MAX(*h + c->baseh, c->minh);
@@ -494,7 +496,7 @@ buttonpress(XEvent *e) {
 	/* focus monitor if necessary */
 	if((m = wintomon(ev->window)) && m != selmon) {
 		unfocus(selmon->sel, True);
-		selmon = m;
+		changemon(m);
 		focus(NULL);
 	}
 	if(ev->window == selmon->barwin) {
@@ -521,6 +523,13 @@ buttonpress(XEvent *e) {
 		if(click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
 			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+}
+
+void
+changemon(Monitor *m) {
+	selmon = m;
+	resizebarwin(selmon);
+	updatesystray();
 }
 
 void
@@ -651,7 +660,7 @@ clientmessage(XEvent *e) {
 	else if(cme->message_type == netatom[NetActiveWindow]) {
 		if(!ISVISIBLE(c)) {
 			for(i=0; !(c->tags & 1 << i); i++);
-			view(&(Arg){.ui = 1 << i});
+			view(&(Arg) {.ui = 1 << i});
 		}
 		pop(c);
 	}
@@ -963,7 +972,7 @@ enternotify(XEvent *e) {
 	m = c ? c->mon : wintomon(ev->window);
 	if(m != selmon) {
 		unfocus(selmon->sel, True);
-		selmon = m;
+		changemon(m);
 	}
 	else if(!c || c == selmon->sel)
 		return;
@@ -988,7 +997,7 @@ focus(Client *c) {
 		unfocus(selmon->sel, False);
 	if(c) {
 		if(c->mon != selmon)
-			selmon = c->mon;
+			changemon(c->mon);
 		if(c->isurgent)
 			clearurgent(c);
 		detachstack(c);
@@ -1020,7 +1029,7 @@ focusmon(const Arg *arg) {
 	if((m = dirtomon(arg->i)) == selmon)
 		return;
 	unfocus(selmon->sel, True);
-	selmon = m;
+	changemon(m);
 	focus(NULL);
 }
 
@@ -1376,7 +1385,7 @@ motionnotify(XEvent *e) {
 	if(ev->window != root)
 		return;
 	if((m = recttomon(ev->x_root, ev->y_root, 1, 1)) != mon && mon) {
-		selmon = m;
+		changemon(m);
 		focus(NULL);
 	}
 	mon = m;
@@ -1432,7 +1441,7 @@ movemouse(const Arg *arg) {
 	XUngrabPointer(dpy, CurrentTime);
 	if((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
 		sendmon(c, m);
-		selmon = m;
+		changemon(m);
 		focus(NULL);
 	}
 }
@@ -1516,6 +1525,13 @@ recttomon(int x, int y, int w, int h) {
 }
 
 void
+restart(const Arg *arg)
+{
+  static char *self[] = {"dwm"};
+  execvp(self[0], self);
+}
+
+void
 removesystrayicon(Client *i) {
 	Client **ii;
 
@@ -1572,20 +1588,20 @@ resizemouse(const Arg *arg) {
 	ocy = c->y;
 	ocw = c->w + (c->bw << 1);
 	och = c->h + (c->bw << 1);
-	
+
 	if(getrootptr(&xc, &yc) == False)
 		return;
 
 	xc = ((xc - ocx) << 1) < c->w + c->bw - 1;
 	yc = ((yc - ocy) << 1) < c->h + c->bw - 1;
 	cur = cursor[CurResizeBottomRight + xc + (yc << 1)];
-	
+
 	if(XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 	                None, cur, CurrentTime) != GrabSuccess)
 		return;
 
 	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, xc ? -1 : ocw, yc ? -1 : c->h);
-	
+
 	do {
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
 		switch(ev.type) {
@@ -1613,12 +1629,12 @@ resizemouse(const Arg *arg) {
 			break;
 		}
 	} while(ev.type != ButtonRelease);
-	
+
 	XUngrabPointer(dpy, CurrentTime);
 	while(XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	if((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
 		sendmon(c, m);
-		selmon = m;
+		changemon(m);
 		focus(NULL);
 	}
 }
@@ -1664,9 +1680,11 @@ run(void) {
 	XEvent ev;
 	/* main event loop */
 	XSync(dpy, False);
-	while(running && !XNextEvent(dpy, &ev))
-		if(handler[ev.type])
+	while(running && !XNextEvent(dpy, &ev)) {
+		if(handler[ev.type]) {
 			handler[ev.type](&ev); /* call handler */
+		}
+	}
 }
 
 void
