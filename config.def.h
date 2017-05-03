@@ -37,6 +37,8 @@ static const Layout layouts[] = {
 	{ "<||",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
+  { "HHH",      grid },
+  { "+++",      stack}
 };
 
 /* key definitions */
@@ -58,7 +60,7 @@ static const Layout layouts[] = {
 static const char *dmenucmd[] = { "dmenu_run", "-l", dmenu_lines, "-p", prompt, "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
 static const char *termcmd[]  = { "urxvt", NULL };
 static const char *explorer[] = { "dbus-launch", "pcmanfm", NULL };
-static const char *lock[]    = { "slock", NULL };
+static const char *lock[]    = { "sflock", NULL };
 static const char *scrot[]   = {"/bin/sh", "-c", "scrot ~/screenshots/%Y-%m-%d-%T-screenshot.png", NULL};
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -78,6 +80,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+  { MODKEY,                       XK_g,      setlayout,      {.v = &layouts[3]} },
+  { MODKEY,                       XK_s,      setlayout,      {.v = &layouts[4]} },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	TILEKEYS(MODKEY,                                           1, 0, 0)
 	TILEKEYS(MODKEY|ShiftMask,                                 0, 1, 0)
@@ -101,7 +105,7 @@ static Key keys[] = {
 	TAGKEYS(                        XK_7,                      6)
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
-  { MODKEY,                       XK_q,      restart,        {0} },
+  { MODKEY|ControlMask,           XK_q,      restart,        {0} },
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
 

@@ -22,6 +22,7 @@
  */
 #include <errno.h>
 #include <locale.h>
+#include <math.h>
 #include <stdarg.h>
 #include <signal.h>
 #include <stdio.h>
@@ -231,6 +232,7 @@ static unsigned int getsystraywidth();
 static Bool gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, Bool focused);
 static void grabkeys(void);
+static void grid(Monitor* m);
 static void incnmaster(const Arg *arg);
 static void initfont(const char *fontstr);
 static void keypress(XEvent *e);
@@ -268,6 +270,7 @@ static void setup(void);
 static void showhide(Client *c);
 static void sigchld(int unused);
 static void spawn(const Arg *arg);
+static void stack(Monitor *m);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static int textnw(const char *text, unsigned int len);
@@ -1192,6 +1195,40 @@ grabkeys(void) {
 }
 
 void
+grid(Monitor *m)
+{
+  unsigned int i, n, cx, cy, cw, ch, aw, ah, ncols, nrows;
+  XWindowAttributes wa;
+  Client *c;
+
+  for(n = 0, c = m->clients; c; c = c->next)
+    if (ISVISIBLE(c) && !c->isfloating)
+      n++;
+  if (n) {
+    nrows = (int)ceilf(sqrtf(n));
+    ncols =(int)ceilf(((float)n / nrows));
+
+    // Windows dimension.
+    cw = m->ww / (ncols ? ncols : 1);
+    ch = m->wh; 
+    if (!selmon->showbar) {
+      if (!XGetWindowAttributes(dpy, selmon->barwin, &wa))
+        return ;
+      ch += wa.height;
+    }
+    ch /= (nrows ? nrows : 1);
+    for(i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
+      cx = m->wx + (i / nrows) * cw;
+      cy = m->wy + (i % nrows) * ch;
+      ah = ((i + 1) % nrows == 0) ? m->wh - ch * nrows : 0;
+      aw = (i >= nrows * (ncols - 1)) ? m->ww - cw * ncols : 0;
+      resize(c,cx,cy,cw - 2 * c->bw + aw, ch - 2 * c->bw +ah, False);
+      i++;
+    }
+  }
+}
+
+void
 incnmaster(const Arg *arg) {
 	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(selmon->nmaster + arg->i, 0);
 	arrange(selmon);
@@ -1952,6 +1989,14 @@ spawn(const Arg *arg) {
 }
 
 void
+stack(Monitor *m) {
+  Client *c;
+  for(c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
+    resize(c, m->wx, m->wy, m->ww - 2*c->bw, m->wh - 2*c->bw, False);
+  }
+}
+
+void
 tag(const Arg *arg) {
 	if(selmon->sel && arg->ui & TAGMASK) {
 		selmon->sel->tags = arg->ui & TAGMASK;
@@ -2591,7 +2636,7 @@ zoom(const Arg *arg) {
 int
 main(int argc, char *argv[]) {
 	if(argc == 2 && !strcmp("-v", argv[1]))
-		die("dwm-"VERSION", © 2006-2011 dwm engineers, see LICENSE for details\n");
+		die("dwm-" VERSION ", © 2006-2011 dwm engineers, see LICENSE for details\n");
 	else if(argc != 1)
 		die("usage: dwm [-v]\n");
 	if(!setlocale(LC_CTYPE, "") || !XSupportsLocale())
