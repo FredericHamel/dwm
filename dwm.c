@@ -1600,7 +1600,13 @@ propertynotify(XEvent *e) {
 }
 
 void
-quit(const Arg *arg) {
+quit(const Arg *arg) {  
+  Monitor *m = mons;
+  for(; m; m = m->next) {
+    if(m->clients) {
+      return;
+    }
+  }
   running = False;
 }
 
