@@ -1,5 +1,4 @@
 *.o
 *.tar.gz
-config.h
 dwm
 pkg
