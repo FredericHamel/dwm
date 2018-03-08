@@ -1602,6 +1602,8 @@ propertynotify(XEvent *e) {
 void
 quit(const Arg *arg) {  
   Monitor *m = mons;
+  if(systray->icons)
+    return;
   for(; m; m = m->next) {
     if(m->clients) {
       return;
