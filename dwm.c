@@ -1369,6 +1369,7 @@ manage(Window w, XWindowAttributes *wa) {
   c->mon->sel = c;
   arrange(c->mon);
   XMapWindow(dpy, c->win);
+  XRaiseWindow(dpy, c->win);
   focus(NULL);
 }
 
