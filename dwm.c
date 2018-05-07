@@ -1211,7 +1211,7 @@ grid(Monitor *m)
 
     // Windows dimension.
     cw = m->ww / (ncols ? ncols : 1);
-    ch = m->wh; 
+    ch = m->wh;
     if (!selmon->showbar) {
       if (!XGetWindowAttributes(dpy, selmon->barwin, &wa))
         return ;
@@ -1505,7 +1505,7 @@ movestack(const Arg *arg) {
       // Find client after selmon->sel
       for(c = selmon->sel->next; c && (!ISVISIBLE(c) || c->isfloating); c = c->next);
       if (!c) {
-        for (c = selmon->clients; c != selmon->sel && (!ISVISIBLE(c) || c->isfloating); c = c->next); 
+        for (c = selmon->clients; c != selmon->sel && (!ISVISIBLE(c) || c->isfloating); c = c->next);
       }
     }
 
@@ -1600,7 +1600,7 @@ propertynotify(XEvent *e) {
 }
 
 void
-quit(const Arg *arg) {  
+quit(const Arg *arg) {
   Monitor *m = mons;
   if(systray->icons)
     return;
