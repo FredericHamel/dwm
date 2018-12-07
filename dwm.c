@@ -1202,12 +1202,21 @@ grid(Monitor *m)
   XWindowAttributes wa;
   Client *c;
 
+  // Add grid direction.
+  Area *ma = m->pertag->areas[m->pertag->curtag] + 1;
+  m->ltsymbol[1] = (char[]){ '|', '-' }[ma->dir];
+
   for(n = 0, c = m->clients; c; c = c->next)
     if (ISVISIBLE(c) && !c->isfloating)
       n++;
   if (n) {
-    nrows = (int)ceilf(sqrtf(n));
-    ncols =(int)ceilf(((float)n / nrows));
+    if (ma->dir == DirHor) {
+      nrows = (int)ceilf(sqrtf(n));
+      ncols = (int)ceilf(((float)n / nrows));
+    } else {
+      ncols = (int)ceilf(sqrtf(n));
+      nrows = (int)ceilf(((float)n / ncols));
+    }
 
     // Windows dimension.
     cw = m->ww / (ncols ? ncols : 1);
