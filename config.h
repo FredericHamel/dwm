@@ -18,7 +18,17 @@ static const Bool showbar           = True;     /* False means no bar */
 static const Bool topbar            = True;     /* False means bottom bar */
 
 /* tagging */
+
+#if defined(TAGBAR_LANG_DEFAULT) || defined(TAGBAR_LANG_LATIN)
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+#elif defined(TAGBAR_LANG_ROMAN)
+static const char *tags[] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" };
+#elif defined(TAGBAR_LANG_JAPANESE)
+static const char *tags[] = { "一", "二", "三", "四", "五", "六", "七", "八", "九" };
+#else
+# error "TAGBAR_LANG not provided"
+#endif
+
 
 static const Rule rules[] = {
 	/* class      instance    title       tags mask     isfloating   monitor */

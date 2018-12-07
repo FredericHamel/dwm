@@ -1,5 +1,5 @@
 # dwm version
-VERSION = 6.0.3
+VERSION = $(shell "git" "describe" "--tags")
 
 # Customize below to fit your system
 
@@ -24,6 +24,10 @@ CPPFLAGS += -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
 CFLAGS = -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
 #LDFLAGS = -g ${LIBS}
 LDFLAGS = -s ${LIBS}
+
+# Language of use for the tag.
+# Default is latin
+TAGBAR_LANG=latin
 
 # Solaris
 #CFLAGS = -fast ${INCS} -DVERSION=\"${VERSION}\"

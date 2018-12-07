@@ -5,14 +5,26 @@ include config.mk
 
 SRC = dwm.c
 OBJ = ${SRC:.c=.o}
+ifeq (${TAGBAR_LANG},japanese)
+CFLAGS+=-DTAGBAR_LANG_JAPANESE
+else ifeq (${TAGBAR_LANG},roman)
+CFLAGS+=-DTAGBAR_LANG_ROMAN
+else ifeq (${TAGBAR_LANG},latin)
+CFLAGS+=-DTAGBAR_LANG_LATIN
+else
+CFLAGS+=-DTAGBAR_LANG_DEFAULT
+endif
 
-all: options dwm
+all: options version dwm
 
 options:
 	@echo dwm build options:
 	@echo "CFLAGS   = ${CFLAGS}"
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
+
+version:
+	@echo "VERSION: ${VERSION}"
 
 .c.o:
 	@echo CC $<
