@@ -1,0 +1,6 @@
+# See LICENSE file for copyright and license details.
+
+option('tagbar_lang', type : 'combo', choices : ['latin', 'japanese', 'roman'])
+option('terminal_app', type : 'string', value: 'xterm')
+option('lockscreen_app', type : 'string', value: 'slock')
+

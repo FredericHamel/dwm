@@ -2,25 +2,31 @@ dwm - dynamic window manager
 ============================
 dwm is an extremely fast, small, and dynamic window manager for X.
 
-
 Requirements
 ------------
 In order to build dwm you need the Xlib header files.
+And mesonbuild build system which use ninja instead of make.
 
 
 Installation
 ------------
-Edit config.mk to match your local setup (dwm is installed into
-the /usr/local namespace by default).
+Enter the following command as non-root user (it should not required
+root access at this step):
 
-Afterwards enter the following command to build and install dwm (if
-necessary as root):
+    meson . build
+    ninja -C build
 
-    make clean install
+This should build dwm using the default options.
+Afterward enter the following command (as root if needed)
+to install it into /usr/local:
+
+    ninja -C build install
+
+You can change the installation directory with the DESTDIR
+environment variable.
 
 If you are going to use the default bluegray color scheme it is highly
 recommended to also install the bluegray files shipped in the dextra package.
-
 
 Running dwm
 -----------
