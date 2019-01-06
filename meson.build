@@ -10,7 +10,7 @@ version=git.stdout().strip()
 c = meson.get_compiler('c')
 Xlib = c.find_library('X11')
 Xinerama = c.find_library('Xinerama')
-m = c.find_library('m')
+m = c.find_library('m', required: false)
 
 add_project_arguments('-DXINERAMA', language: 'c')
 
@@ -36,7 +36,8 @@ configure_file(input: 'config.h.in',
     configuration: conf_data)
 
 executable('dwm', ['dwm.c'],
-    dependencies: [Xlib, Xinerama, m])
+    dependencies: [Xlib, Xinerama, m],
+    install: true)
 
 #extra_includes = ['/usr/X11R6/include']
 #extra_lib = ['/usr/X11R6/lib']
