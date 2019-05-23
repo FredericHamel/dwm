@@ -17,7 +17,7 @@ add_project_arguments('-DXINERAMA', language: 'c')
 conf_data = configuration_data()
 conf_data.set('version', version)
 
-tagbar_lang = get_option('tagbar_lang')
+tagbar_lang = get_option('TAGBAR_LANG')
 if tagbar_lang == 'latin'
   conf_data.set('tags', '{ "1", "2", "3", "4", "5", "6", "7", "8", "9" }')
 elif tagbar_lang == 'roman'
@@ -28,8 +28,19 @@ else
   error('Unsopported tagbar_lang ' + tagbar_lang)
 endif
 
-conf_data.set('terminal_app', get_option('terminal_app'))
-conf_data.set('lockscreen_app', get_option('lockscreen_app'))
+terminal_app = get_option('TERMINAL_APP')
+if terminal_app != ''
+  conf_data.set_quoted('USE_TERMINAL', terminal_app)
+endif
+
+lockscreen_app = get_option('LOCKSCREEN_APP')
+if lockscreen_app != ''
+  conf_data.set_quoted('USE_LOCKSCREEN', lockscreen_app)
+endif
+
+conf_data.set('USE_EXPLORER', get_option('USE_EXPLORER'))
+conf_data.set('USE_SCROT', get_option('USE_SCROT'))
+
 
 configure_file(input: 'config.h.in',
     output: 'config.h',

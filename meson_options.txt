@@ -1,6 +1,8 @@
 # See LICENSE file for copyright and license details.
 
-option('tagbar_lang', type : 'combo', choices : ['latin', 'japanese', 'roman'])
-option('terminal_app', type : 'string', value: 'xterm')
-option('lockscreen_app', type : 'string', value: 'slock')
+option('TAGBAR_LANG', type : 'combo', choices : ['latin', 'japanese', 'roman'])
+option('TERMINAL_APP', type : 'string')
+option('LOCKSCREEN_APP', type : 'string')
+option('USE_EXPLORER', type : 'boolean', value: false)
+option('USE_SCROT', type : 'boolean', value: false)
 

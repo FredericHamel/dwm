@@ -5,6 +5,11 @@
 #define VERSION "@version@"
 #define TAGS @tags@
 
+#mesondefine USE_TERMINAL
+#mesondefine USE_LOCKSCREEN
+#mesondefine USE_EXPLORER
+#mesondefine USE_SCROT
+
 /* appearance */
 static const char font[]            = "-*-*-medium-r-*-*-14-*-*-*-*-80-*-*";
 static const char normbordercolor[] = "#444444";
@@ -63,17 +68,39 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", "-l", dmenu_lines, "-p", prompt, "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]  = { "@terminal_app@", NULL };
+
+#ifdef USE_TERMINAL
+static const char *termcmd[]  = { USE_TERMINAL, NULL };
+#endif
+
+#ifdef USE_EXPLORER
 static const char *explorer[] = { "dbus-launch", "pcmanfm", NULL };
-static const char *lock[]    = { "@lockscreen_app@", NULL };
+#endif
+
+#ifdef USE_LOCKSCREEN
+static const char *lock[]    = { USE_LOCKSCREEN, NULL };
+#endif
+
+#ifdef USE_SCROT
 static const char *scrot[]   = {"/bin/sh", "-c", "scrot ~/screenshots/%Y-%m-%d-%T-screenshot.png", NULL};
+#endif
+
 static Key keys[] = {
     /* modifier                     key        function        argument */
     { MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+#ifdef USE_TERMINAL
     { MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
+#endif
+#ifdef USE_EXPLORER
     { MODKEY,                       XK_e,      spawn,          {.v = explorer } },
+#endif
+#ifdef USE_LOCKSCREEN
     { MODKEY,                       XK_o,      spawn,          {.v = lock }  },
+#endif
+
+#ifdef USE_SCROT
     { MODKEY,                       XK_F12,    spawn,          {.v = scrot} },
+#endif
     { MODKEY,                       XK_b,      togglebar,      {0} },
     { MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
     { MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
@@ -123,7 +150,9 @@ static Button buttons[] = {
     { ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
     { ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
     { ClkWinTitle,          0,              Button2,        zoom,           {0} },
+#ifdef USE_TERMINAL
     { ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
+#endif
     { ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
     { ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
     { ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
