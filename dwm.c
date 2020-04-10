@@ -271,7 +271,6 @@ static void setup(void);
 static void showhide(Client *c);
 static void sigchld(int unused);
 static void spawn(const Arg *arg);
-static void stack(Monitor *m);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static int textnw(const char *text, unsigned int len);
@@ -2060,14 +2059,6 @@ spawn(const Arg *arg) {
     fprintf(stderr, "dwm: execvp %s", ((char **)arg->v)[0]);
     perror(" failed");
     exit(EXIT_SUCCESS);
-  }
-}
-
-void
-stack(Monitor *m) {
-  Client *c;
-  for(c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
-    resize(c, m->wx, m->wy, m->ww - 2*c->bw, m->wh - 2*c->bw, False);
   }
 }
 
