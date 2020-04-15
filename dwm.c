@@ -83,7 +83,7 @@ enum { CurNormal, CurResizeBottomRight, CurResizeBottomLeft, CurResizeTopRight, 
 enum { ColBorder, ColFG, ColBG, ColLast };              /* color */
 enum { NetSupported, NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation,
   NetWMName, NetWMState, NetWMFullscreen, NetActiveWindow, NetWMWindowType,
-  NetWMWindowTypeDialog, NetLast }; /* EWMH atoms */
+  NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { Manager, Xembed, XembedInfo, XLast }; /* Xembed atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
@@ -191,6 +191,13 @@ struct Systray {
   Client *icons;
 };
 
+typedef struct WindowArray WindowArray;
+struct WindowArray {
+  Window *win;
+  int count;
+  unsigned int size, last_size;
+};
+
 /* function declarations */
 static void applyrules(Client *c);
 static Bool applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact);
@@ -286,6 +293,7 @@ static void unmapnotify(XEvent *e);
 static Bool updategeom(void);
 static void updatebarpos(Monitor *m);
 static void updatebars(void);
+static void updateclientlist(void);
 static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
 static void updatestatus(void);
@@ -337,6 +345,8 @@ static Cursor cursor[CurLast];
 static Display *dpy;
 static DC dc;
 static Monitor *mons = NULL, *selmon = NULL;
+
+static WindowArray window_array;
 static Window root;
 
 /* configuration, allows nested code to access above variables */
@@ -1402,6 +1412,8 @@ maprequest(XEvent *e) {
     updatesystray();
   }
 
+  updateclientlist();
+
   if(!XGetWindowAttributes(dpy, ev->window, &wa))
     return;
   if(wa.override_redirect)
@@ -1987,6 +1999,7 @@ setup(void) {
   netatom[NetWMFullscreen] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
   netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
   netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+  netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
   xatom[Manager] = XInternAtom(dpy, "MANAGER", False);
   xatom[Xembed] = XInternAtom(dpy, "_XEMBED", False);
   xatom[XembedInfo] = XInternAtom(dpy, "_XEMBED_INFO", False);
@@ -2017,6 +2030,10 @@ setup(void) {
   /* EWMH support per view */
   XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
       PropModeReplace, (unsigned char *) netatom, NetLast);
+  /* init client list */
+  window_array.win = NULL;
+  updateclientlist();
+
   /* select for events */
   wa.cursor = cursor[CurNormal];
   wa.event_mask = SubstructureRedirectMask|SubstructureNotifyMask|ButtonPressMask|PointerMotionMask
@@ -2259,6 +2276,7 @@ unmapnotify(XEvent *e) {
     resizebarwin(selmon);
     updatesystray();
   }
+  updateclientlist();
 }
 
 void
@@ -2294,6 +2312,38 @@ updatebarpos(Monitor *m) {
   }
   else
     m->by = -bh;
+}
+
+void
+updateclientlist() {
+  int n;
+  size_t new_size;
+  Monitor *m;
+  Client *c;
+  if (!window_array.win) {
+    // initialize
+    if (!(window_array.win = calloc(1, sizeof(Window))))
+        die("fatal: could not malloc() %u bytes\n", sizeof(Window));
+    window_array.size = 1;
+    window_array.last_size = 1;
+  }
+
+  window_array.count = 0;
+  for (n = 0, m = mons; m; m = m->next, n++) {
+    for (c = m->clients; c; c = c->next) {
+      if (window_array.count == window_array.size) {
+        new_size = window_array.size + window_array.last_size;
+        if (!(window_array.win = realloc(window_array.win, new_size*sizeof(Window))))
+            die("fatal: could not malloc() %u bytes\n", sizeof(Window));
+        window_array.last_size = window_array.size;
+        window_array.size = new_size;
+      }
+      window_array.win[window_array.count++] = c->win;
+    }
+  }
+
+  XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeReplace,
+      (unsigned char*)window_array.win, window_array.count);
 }
 
 Bool
