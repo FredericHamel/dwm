@@ -193,7 +193,7 @@ struct Systray {
 
 typedef struct WindowArray WindowArray;
 struct WindowArray {
-  Window *win;
+  Window *data;
   int count;
   unsigned int size, last_size;
 };
@@ -587,6 +587,7 @@ cleanup(void) {
     XDestroyWindow(dpy, systray->win);
     free(systray);
   }
+  free(window_array.data);
   XSync(dpy, False);
   XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 }
@@ -2031,7 +2032,7 @@ setup(void) {
   XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
       PropModeReplace, (unsigned char *) netatom, NetLast);
   /* init client list */
-  window_array.win = NULL;
+  window_array.data = NULL;
   updateclientlist();
 
   /* select for events */
@@ -2320,9 +2321,9 @@ updateclientlist() {
   size_t new_size;
   Monitor *m;
   Client *c;
-  if (!window_array.win) {
+  if (!window_array.data) {
     // initialize
-    if (!(window_array.win = calloc(1, sizeof(Window))))
+    if (!(window_array.data = calloc(1, sizeof(Window))))
         die("fatal: could not malloc() %u bytes\n", sizeof(Window));
     window_array.size = 1;
     window_array.last_size = 1;
@@ -2333,17 +2334,17 @@ updateclientlist() {
     for (c = m->clients; c; c = c->next) {
       if (window_array.count == window_array.size) {
         new_size = window_array.size + window_array.last_size;
-        if (!(window_array.win = realloc(window_array.win, new_size*sizeof(Window))))
+        if (!(window_array.data = realloc(window_array.data, new_size*sizeof(Window))))
             die("fatal: could not malloc() %u bytes\n", sizeof(Window));
         window_array.last_size = window_array.size;
         window_array.size = new_size;
       }
-      window_array.win[window_array.count++] = c->win;
+      window_array.data[window_array.count++] = c->win;
     }
   }
 
   XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeReplace,
-      (unsigned char*)window_array.win, window_array.count);
+      (unsigned char*)window_array.data, window_array.count);
 }
 
 Bool
