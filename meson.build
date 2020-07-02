@@ -1,5 +1,5 @@
 # See LICENSE file for copyright and license details.
-project('dwm', 'c')
+project('dwm', 'c', version: '6.1.0')
 
 git=run_command('git', 'describe', '--tags')
 if git.returncode() != 0
@@ -9,6 +9,10 @@ version=git.stdout().strip()
 
 c = meson.get_compiler('c')
 Xlib = c.find_library('X11')
+Xlib_xcb = c.find_library('X11-xcb')
+xcb = c.find_library('xcb')
+xcb_res = c.find_library('xcb-res')
+
 Xinerama = c.find_library('Xinerama')
 m = c.find_library('m', required: false)
 
@@ -47,7 +51,7 @@ configure_file(input: 'config.h.in',
     configuration: conf_data)
 
 executable('dwm', ['dwm.c'],
-    dependencies: [Xlib, Xinerama, m],
+    dependencies: [Xlib, Xlib_xcb, xcb, xcb_res, Xinerama, m],
     install: true)
 
 #extra_includes = ['/usr/X11R6/include']
