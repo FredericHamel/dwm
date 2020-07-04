@@ -390,6 +390,8 @@ applyrules(Client *c) {
 
   /* rule matching */
   c->isfloating = c->tags = 0;
+  c->noswallow = -1;
+
   XGetClassHint(dpy, c->win, &ch);
   class    = ch.res_class ? ch.res_class : broken;
   instance = ch.res_name  ? ch.res_name  : broken;
