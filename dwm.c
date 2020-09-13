@@ -1619,7 +1619,7 @@ recttomon(int x, int y, int w, int h) {
 void
 restart(const Arg *arg)
 {
-  static char *self[] = {"dwm"};
+  static char *self[] = {"dwm", NULL};
   execvp(self[0], self);
 }
 
