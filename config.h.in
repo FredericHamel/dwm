@@ -50,6 +50,7 @@ static const Rule rules[] = {
 };
 
 /* layout(s) */
+static const int default_layout = 2; /* default layout index */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 

@@ -832,7 +832,7 @@ createmon(void) {
   m->nmaster = nmaster;
   m->showbar = showbar;
   m->topbar = topbar;
-  m->lt[0] = &layouts[0];
+  m->lt[0] = &layouts[default_layout];
   m->lt[1] = &layouts[1 % LENGTH(layouts)];
   strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
 
