@@ -1,7 +1,7 @@
 # See LICENSE file for copyright and license details.
 project('dwm', 'c', version: '6.1.0')
 
-git=run_command('git', 'describe', '--tags')
+git=run_command('git', 'describe', '--tags', check: false)
 if git.returncode() != 0
   error('Version cannot be determine')
 endif
