@@ -918,7 +918,7 @@ drawbar(Monitor *m) {
   unsigned int i, occ = 0, urg = 0;
   Client *c;
 
-  if (showsystray)
+  if (showsystray && m == selmon)
     stw = getsystraywidth();
 
   /* draw status first so it can be overdrawn by tags later */
@@ -1397,7 +1397,7 @@ monocle(Monitor *m) {
   if (n > 0) /* override layout symbol */
     snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
   for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
-    resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, False);
+    resize(c, m->wx + c->bw, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, False);
 }
 
 void
@@ -2333,6 +2333,8 @@ updatebars(void) {
     XDefineCursor(dpy, m->barwin, cursor[CurNormal]->cursor);
     if (showsystray && m == selmon)
       XMapRaised(dpy, m->barwin);
+    else
+      XMapWindow(dpy, m->barwin);
     XSetClassHint(dpy, m->barwin, &ch);
   }
 }
