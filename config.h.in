@@ -46,6 +46,7 @@ static const Rule rules[] = {
   { "Gimp",     NULL,       NULL,           0,            True,        False,      0,        -1 },
   { "firefox",  NULL,       NULL,           1 << 8,       False,       False,     -1,        -1 },
   { "St",       NULL,       NULL,           0,            False,       True,       1,        -1 },
+  { NULL,       "floatterm",NULL,           0,            True,        True,       1,        -1 },
   { NULL,       NULL,       "Event Tester", 0,            False,       True,       1,        -1 }, /* xev */
 };
 
