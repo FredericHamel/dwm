@@ -1620,6 +1620,15 @@ void
 restart(const Arg *arg)
 {
   static char *self[] = {"dwm", NULL};
+  Monitor *m;
+  Client *c;
+  for (m = mons; m; m = m->next) {
+    for (c = m->clients; c; c = c->next) {
+      if (c->swallowing) {
+        return;
+      }
+    }
+  }
   execvp(self[0], self);
 }
 
